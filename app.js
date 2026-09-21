@@ -5,9 +5,24 @@ const resultados = document.getElementById('resultados');
 
 let timeId;
 
+class ErrorDeRed extends Error {
+  constructor(message){
+    super(message);
+    this.name = "ErrordeRed";
+  }
+}
+
+class ErrorDeHTTP extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = "ErrordeHTTP";
+    this.status = status;
+  }
+}
+
 input.addEventListener('input', () => {
 
-    reiniciar()
+    reiniciar();
    clearTimeout(timeId);
    mensaje.textContent = 'Comprobando...'
 
@@ -18,38 +33,44 @@ input.addEventListener('input', () => {
    }, 700);});
 
 
-function fetchInfo(UserName)
+async function fetchInfo(UserName)
 {
-    let result;
-    let wasFound = false;
+    try
+    {
+        let result;
+        let wasFound = false;
 
-    fetch('https://jsonplaceholder.typicode.com/users')
-    .then((UserNames) => 
-    {
-         if (!UserNames.ok) {
-            throw new Error(`Error de servidor: ${UserNames.status}`);}
+        let UserNames = await fetch('https://jsonplaceholder.typicode.com/users')
+            if (!UserNames.ok) {
+                throw new ErrorDeHTTP('ErrorHTTP', UserNames.status)
+            }
+            
+        let usuarios = await UserNames.json()
         
-        return UserNames.json()
-    })
-    .then((UserNames) => 
-    {
-        for(let i = 0; i < UserNames.length; i++)
+        for(let i = 0; i < usuarios.length; i++)
         {
-            if(UserNames[i].name.toUpperCase().includes(UserName.toUpperCase()))
+            if(usuarios[i].name.toUpperCase().includes(UserName.toUpperCase()))
             {   
                 wasFound = true
-                result = UserNames[i] 
+                result = usuarios[i] 
                 createCard(result);
             }
         }
 
-        if(!wasFound)
-            mensaje.textContent = 'Usuario No Encontrado!'
-    })
-    .catch((error) => {
-            mensaje.textContent = error.message;
-            reiniciar();
-    })
+            if(!wasFound)
+                mensaje.textContent = 'Usuario No Encontrado!'
+    }
+    catch(error){
+            if(error instanceof ErrorDeHTTP)
+            {
+                mensaje.textContent = `${error.name} Type = ${error.message} Status = ${error.status}` 
+            }
+            else
+            {
+                let errordeRed = new ErrorDeRed(error.message)
+                mensaje.textContent =  `${errordeRed.name} Type = ${errordeRed.message}` 
+            }
+    }
 }
 
 
@@ -79,8 +100,6 @@ function createCard(InfoUser) {
     resultados.appendChild(tarjeta);
 }
 
-function reiniciar()
-{
-    resultados.innerHTML = '';
+function reiniciar(){
+    resultados.innerHTML = ''
 }
-
