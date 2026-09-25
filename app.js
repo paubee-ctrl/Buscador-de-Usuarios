@@ -4,6 +4,7 @@ const mensaje = document.getElementById('mensaje')
 const resultados = document.getElementById('resultados');
 
 let timeId;
+let controlador = new AbortController(); 
 
 class ErrorDeRed extends Error {
   constructor(message){
@@ -24,6 +25,8 @@ input.addEventListener('input', () => {
 
     reiniciar();
    clearTimeout(timeId);
+   controlador.abort();
+   controlador = new AbortController()
    mensaje.textContent = 'Comprobando...'
 
    timeId = setTimeout(() => {
@@ -39,8 +42,8 @@ async function fetchInfo(UserName)
     {
         let result;
         let wasFound = false;
-
-        let UserNames = await fetch('https://jsonplaceholder.typicode.com/users')
+        let UserNames = await fetch('https://jsonplaceholder.typicode.com/users', 
+            {signal: controlador.signal})
             if (!UserNames.ok) {
                 throw new ErrorDeHTTP('ErrorHTTP', UserNames.status)
             }
@@ -61,7 +64,10 @@ async function fetchInfo(UserName)
                 mensaje.textContent = 'Usuario No Encontrado!'
     }
     catch(error){
-            if(error instanceof ErrorDeHTTP)
+            if(error.name === 'AbortError')
+                console.log(error.message)
+            
+            else if(error instanceof ErrorDeHTTP)
             {
                 mensaje.textContent = `${error.name} Type = ${error.message} Status = ${error.status}` 
             }
@@ -72,7 +78,6 @@ async function fetchInfo(UserName)
             }
     }
 }
-
 
 function createCard(InfoUser) {
 
