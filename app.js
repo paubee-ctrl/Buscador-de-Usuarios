@@ -12,7 +12,6 @@ class ErrorDeRed extends Error {
     this.name = "ErrordeRed";
   }
 }
-
 class ErrorDeHTTP extends Error {
   constructor(message, status) {
     super(message);

@@ -22,7 +22,6 @@ It searches for users by name on a public API. The matching is case-insensitive.
 ← The data comes from an API. XSS prevention.
 
 ## Known limitations
-← Race condition: if the user types, stops, and continues, two searches might be in flight and arrive out of order. This would be solved using an `AbortController`.
 ← Ten users are requested on each search. I fetch the data on every search to guarantee it is up to date; the trade-off is one request per search.
 ←  any mistakes that is not HTTP is shown as "errordeRed" including possible bugs on the code.
 
